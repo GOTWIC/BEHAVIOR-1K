@@ -248,6 +248,7 @@ class BehaviorTask(BaseTask):
 
     def reset(self, env):
         super().reset(env)
+
         # Use presampled robot pose if specified (only available for officially supported mobile manipulators)
         if self.use_presampled_robot_pose:
             robot = self.get_agent(env)

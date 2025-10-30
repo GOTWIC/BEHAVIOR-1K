@@ -1,20 +1,3 @@
-"""
-Problem: currently, all save task instance files have a R1Pro robot sampled in them (included in both objects_info and states);
-    but we have several problems: 1) users might want to load a different robot and this cached robot pose may be invalid 2) even if it's the same robot type, users will need different robot config,
-    loaded directly from the environment robot config. This makes reading cached robot information very awkward and not generalizable.
-Proposed fix: instead of cache one specific robot, we do not save the robot information. For every task instance, we will save a valid pose for all available robots from OmniGibson (REGISTERED_ROBOTS).
-    for every task instance, we will instead save robot starting pose information into its metadata field, where it will look like a dictionary of robot type name to a list of poses (will use 0 idx for now)
-What we need to do:
-    the plan sounds pretty good but in reality we will need a lot of work to keep backwards compatibility. That's the purpose of this file. This will be a one time script.
-    We need to:
-        1. For all 50 valid tasks in joylo/sampled_task (there are more than 50 but we only care about those that have ...._instances folder under it), under each task folder,
-            there's a partial room json, a full template, and a instances folder with tro files (trimmed down version of task instance file)
-        2. for each task, we load up the task in og, skip the robot load, take the exsisting robot pose and record it as metadata R1Pro pose 0,
-            and we sample all other robots in each task instance and save them in the task metadata
-        3. we delete the original robot info and state from the task instance files
-        4. the template instance is the full version but the TRO files are not complete, so we will need to handle them differently.
-"""
-
 import os
 import json
 import torch as th
@@ -48,24 +31,8 @@ parser.add_argument(
     help="Where the instance folder, partial json and full json file is stored",
 )
 # Constants
-SAMPLED_TASK_DIR = Path(__file__).parent.parent / "sampled_task"
+SAMPLED_TASK_DIR = os.path.join(get_dataset_path("2025-challenge-task-instances"), "scenes")
 SUPPORTED_ROBOTS = ["R1", "Fetch", "Tiago", "Stretch"]  # All mobile manipulators
-EXCLUDED_TASKS = [
-    "setting_the_table",
-    "can_beans",
-    "putting_away_Halloween_decorations",
-    "tidying_bedroom",
-    "slicing_vegetables",
-    "cleaning_up_plates_and_food",
-    "loading_the_car",
-    "getting_organized_for_work",
-    "cook_cabbage",
-    "clean_a_trumpet",
-    "can_meat",
-    "chop_an_onion",
-    "make_pizza",
-    "picking_up_trash",
-]
 MAX_ATTEMPTS = 10
 
 gm.ENABLE_TRANSITION_RULES = False
@@ -74,7 +41,6 @@ gm.ENABLE_TRANSITION_RULES = False
 def find_given_tasks(data_dir, activities: List[str] = []) -> List[Dict]:
     """
     Find all instance files, partial json and full template json of the given task under folder data_dir.
-    This function ignores EXCLUDED_TASKS and will find all given activities.
 
     Returns:
         List of dictionaries containing task info: name, path, template files, instance dir
@@ -106,35 +72,63 @@ def find_tasks_with_instances() -> List[Dict]:
     """
     Find all tasks that have ..._instances directories under the directory SAMPLED_TASK_DIR.
 
+    The task instance structure is:
+        scenes/
+            <scene_name>/
+                json/
+                    <scene_name>_task_<activity_name>_instances/
+                    <scene_name>_task_<activity_name>_0_0_template.json
+                    <scene_name>_task_<activity_name>_0_0_template-partial_rooms.json
+
     Returns:
         List of dictionaries containing task info: name, path, template files, instance dir
     """
     tasks = []
 
-    for task_dir in SAMPLED_TASK_DIR.iterdir():
-        if not task_dir.is_dir():
+    # Iterate through scene directories (e.g., house_double_floor_lower)
+    for scene_dir in SAMPLED_TASK_DIR.iterdir():
+        if not scene_dir.is_dir():
             continue
 
-        # Look for instance directories
-        instance_dirs = list(task_dir.glob("*_instances"))
+        # Look for the json subdirectory
+        json_dir = scene_dir / "json"
+        if not json_dir.exists() or not json_dir.is_dir():
+            continue
+
+        # Look for instance directories in the json subdirectory
+        instance_dirs = list(json_dir.glob("*_instances"))
         if not instance_dirs:
             continue
 
-        # Find template files
-        template_files = list(task_dir.glob("*_template.json"))
-        partial_files = list(task_dir.glob("*_template-partial_rooms.json"))
+        # Process each instance directory
+        for instance_dir in instance_dirs:
+            # Extract the task prefix (everything before _instances)
+            task_prefix = instance_dir.name.replace("_instances", "")
 
-        if template_files and task_dir.name not in EXCLUDED_TASKS:
-            tasks.append(
-                {
-                    "name": task_dir.name,
-                    "path": task_dir,
-                    "template_file": template_files[0],
-                    "partial_file": partial_files[0] if partial_files else None,
-                    "instance_dir": instance_dirs[0],
-                    "tro_files": sorted(list(instance_dirs[0].glob("*-tro_state.json"))),
-                }
-            )
+            # Find corresponding template files
+            template_pattern = f"{task_prefix}_*_template.json"
+            partial_pattern = f"{task_prefix}_*_template-partial_rooms.json"
+
+            template_files = list(json_dir.glob(template_pattern))
+            partial_files = list(json_dir.glob(partial_pattern))
+
+            if template_files:
+                # Extract activity name from the task prefix
+                # Format: <scene_name>_task_<activity_name>
+                # We want just the activity name part
+                parts = task_prefix.split("_task_")
+                activity_name = parts[1] if len(parts) > 1 else task_prefix
+
+                tasks.append(
+                    {
+                        "name": activity_name,
+                        "path": json_dir,
+                        "template_file": template_files[0],
+                        "partial_file": partial_files[0] if partial_files else None,
+                        "instance_dir": instance_dir,
+                        "tro_files": sorted(list(instance_dir.glob("*-tro_state.json"))),
+                    }
+                )
 
     return tasks
 

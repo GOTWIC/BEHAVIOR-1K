@@ -361,17 +361,38 @@ def main(random_selection=False, headless=False, short_exec=False):
                         feedback = error_msg
                         print("validation failed")
                         print(f"REASON: {feedback}")
+                        # BREAKPOINT: Validation failed - inspect the task state to understand why
+                        # At this breakpoint, you can:
+                        # - Run: for _ in range(1000): og.sim.render()
+                        # - Move the camera around to inspect objects and their states
+                        # - Check env.task for task details
+                        # - Examine feedback variable for the validation error message
+                        breakpoint()
 
                 if success:
                     env.scene.load_state(task_final_state)
                     env.scene.update_initial_file()
                     print("sampling succeed")
+                    # BREAKPOINT: Sampling succeeded - inspect the final task state before saving
+                    # At this breakpoint, you can:
+                    # - Run: for _ in range(1000): og.sim.render()
+                    # - Move the camera around to visually verify the sampled task looks correct
+                    # After inspection, continue to save the task to disk
+                    breakpoint()
                     env.task.save_task(env=env, override=True, task_relevant_only=False, suffix=task_suffix)
                     og.log.info(f"\n\nSampling success: {activity}\n\n")
                     reason = ""
                 else:
                     reason = feedback
                     og.log.error(f"\n\nSampling failed: {activity}.\n\nFeedback: {reason}\n\n")
+                    # BREAKPOINT: Sampling failed - inspect to understand what went wrong
+                    # At this breakpoint, you can:
+                    # - Run: for _ in range(1000): og.sim.render()
+                    # - Move the camera to see the current state of the scene
+                    # - Check the feedback/reason variable to see why sampling failed
+                    # - Inspect env.task.object_scope to see what objects were sampled
+                    # - Debug object placement or constraint satisfaction issues
+                    breakpoint()
                 og.sim.stop()
             else:
                 og.log.error(f"\n\nSampling failed: {activity}.\n\nFeedback: {reason}\n\n")
@@ -415,6 +436,12 @@ def main(random_selection=False, headless=False, short_exec=False):
             og.log.error(f"\n\nCaught exception sampling activity {activity} in scene {args.scene_model}:\n\n{e}\n\n")
 
             print("exception")
+            # BREAKPOINT: Exception occurred during sampling - debug the error
+            # At this breakpoint, you can:
+            # - Inspect the exception 'e' and traceback_str for error details
+            # - Run: for _ in range(1000): og.sim.render() (if simulation is still valid)
+            # - Check env state and task configuration that led to the exception
+            # - Examine which part of the sampling process failed
             breakpoint()
 
             if not args.offline:
