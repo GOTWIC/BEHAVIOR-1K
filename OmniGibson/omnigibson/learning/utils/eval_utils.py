@@ -10,7 +10,6 @@ ROBOT_CAMERA_NAMES = {
     },
     "Franka": {
         "external_1": "external::external_camera_1",
-        # "external_2": "external::external_camera_2",
         "wrist": "robot::robot:camera_link:Camera:0",
     },
     "R1Pro": {
