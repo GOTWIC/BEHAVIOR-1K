@@ -253,9 +253,9 @@ class Robot(USDObject, GymObservable):
 
             # Sanity check that the base controller is a HolonomicBaseJointController
             if controller_config is not None and "base" in controller_config:
-                assert (
-                    controller_config["base"]["name"] == "HolonomicBaseJointController"
-                ), "Base controller must be a HolonomicBaseJointController!"
+                assert controller_config["base"]["name"] == "HolonomicBaseJointController", (
+                    "Base controller must be a HolonomicBaseJointController!"
+                )
 
         if self.is_mobile_manipulation:
             assert_valid_key(key=default_reset_mode, valid_keys=RESET_JOINT_OPTIONS, name="default_reset_mode")
@@ -413,17 +413,17 @@ class Robot(USDObject, GymObservable):
     @property
     def linear_velocity_gain_for_primitives(self) -> float:
         """Returns the linear velocity proportional gain for action primitives."""
-        assert (
-            self._definition.linear_velocity_gain_for_primitives is not None
-        ), f"linear_velocity_gain_for_primitives not defined for robot {self.model}"
+        assert self._definition.linear_velocity_gain_for_primitives is not None, (
+            f"linear_velocity_gain_for_primitives not defined for robot {self.model}"
+        )
         return self._definition.linear_velocity_gain_for_primitives
 
     @property
     def angular_velocity_gain_for_primitives(self) -> float:
         """Returns the angular velocity proportional gain for action primitives."""
-        assert (
-            self._definition.angular_velocity_gain_for_primitives is not None
-        ), f"angular_velocity_gain_for_primitives not defined for robot {self.model}"
+        assert self._definition.angular_velocity_gain_for_primitives is not None, (
+            f"angular_velocity_gain_for_primitives not defined for robot {self.model}"
+        )
         return self._definition.angular_velocity_gain_for_primitives
 
     @property
@@ -484,9 +484,9 @@ class Robot(USDObject, GymObservable):
             )
             self._control_freq = expected_control_freq
         else:
-            assert math.isclose(
-                expected_control_freq, self._control_freq
-            ), "Stored control frequency does not match environment's render timestep."
+            assert math.isclose(expected_control_freq, self._control_freq), (
+                "Stored control frequency does not match environment's render timestep."
+            )
 
         return prim
 
@@ -573,18 +573,18 @@ class Robot(USDObject, GymObservable):
             # If this controller subsumes other controllers, it cannot be subsumed by another controller
             # (i.e.: we don't allow nested / cyclical subsuming)
             if len(subsume_controllers) > 0:
-                assert (
-                    name not in subsume_names
-                ), f"Controller {name} subsumes other controllers, and therefore cannot be subsumed by another controller!"
+                assert name not in subsume_names, (
+                    f"Controller {name} subsumes other controllers, and therefore cannot be subsumed by another controller!"
+                )
                 controller_subsumes[name] = subsume_controllers
                 for subsume_name in subsume_controllers:
                     # Make sure it doesn't already exist -- a controller should only be subsumed by up to one other
-                    assert (
-                        subsume_name not in subsume_names
-                    ), f"Controller {subsume_name} cannot be subsumed by more than one other controller!"
-                    assert (
-                        subsume_name not in controller_subsumes
-                    ), f"Controller {name} subsumes other controllers, and therefore cannot be subsumed by another controller!"
+                    assert subsume_name not in subsume_names, (
+                        f"Controller {subsume_name} cannot be subsumed by more than one other controller!"
+                    )
+                    assert subsume_name not in controller_subsumes, (
+                        f"Controller {name} subsumes other controllers, and therefore cannot be subsumed by another controller!"
+                    )
                     subsume_names.add(subsume_name)
 
         # Loop over all controllers, in the order corresponding to @action dim
@@ -606,9 +606,9 @@ class Robot(USDObject, GymObservable):
             controller = create_controller(**cb.from_torch_recursive(cfg))
             # Verify the controller's DOFs can all be driven
             for idx in controller.dof_idx:
-                assert self._joints[
-                    self.dof_names_ordered[idx]
-                ].driven, "Controllers should only control driveable joints!"
+                assert self._joints[self.dof_names_ordered[idx]].driven, (
+                    "Controllers should only control driveable joints!"
+                )
             self._controllers[name] = controller
         self.update_controller_mode()
 
@@ -1109,10 +1109,8 @@ class Robot(USDObject, GymObservable):
             task_name (str): name to assign for this task_frame. It will be prepended to all fcns generated
             link_name (str): the corresponding link name from this controllable object that @task_name is referencing
         """
-        fcns[f"_{task_name}_pos_quat_relative"] = (
-            lambda: ControllableObjectViewAPI.get_link_relative_position_orientation(
-                self.articulation_root_path, link_name
-            )
+        fcns[f"_{task_name}_pos_quat_relative"] = lambda: (
+            ControllableObjectViewAPI.get_link_relative_position_orientation(self.articulation_root_path, link_name)
         )
         fcns[f"{task_name}_pos_relative"] = lambda: fcns[f"_{task_name}_pos_quat_relative"][0]
         fcns[f"{task_name}_quat_relative"] = lambda: fcns[f"_{task_name}_pos_quat_relative"][1]
@@ -1257,9 +1255,9 @@ class Robot(USDObject, GymObservable):
             ag_params = self._ag_obj_constraint_params.copy()
             for arm in ag_params.keys():
                 if len(ag_params[arm]) > 0:
-                    assert (
-                        self.scene is not None
-                    ), "Cannot get position and orientation relative to scene without a scene"
+                    assert self.scene is not None, (
+                        "Cannot get position and orientation relative to scene without a scene"
+                    )
                     ag_params[arm]["contact_pos"], _ = self.scene.convert_world_pose_to_scene_relative(
                         ag_params[arm]["contact_pos"],
                         th.tensor([0, 0, 0, 1], dtype=th.float32),
@@ -1316,9 +1314,9 @@ class Robot(USDObject, GymObservable):
                     obj = self.scene.object_registry("prim_path", loaded_ag_constraint["ag_obj_prim_path"])
                     link = obj.links[loaded_ag_constraint["ag_link_prim_path"].split("/")[-1]]
                     contact_pos_global = loaded_ag_constraint["contact_pos"]
-                    assert (
-                        self.scene is not None
-                    ), "Cannot set position and orientation relative to scene without a scene"
+                    assert self.scene is not None, (
+                        "Cannot set position and orientation relative to scene without a scene"
+                    )
                     contact_pos_global, _ = self.scene.convert_scene_relative_pose_to_world(
                         contact_pos_global,
                         th.tensor([0, 0, 0, 1], dtype=th.float32),
@@ -1362,19 +1360,19 @@ class Robot(USDObject, GymObservable):
     def _initialize(self):
         # Assert that the prim path matches ControllableObjectViewAPI's expected format
         scene_id, robot_name = self.articulation_root_path.split("/")[2:4]
-        assert scene_id.startswith(
-            "scene_"
-        ), "Second component of articulation root path (scene ID) must start with 'scene_'"
+        assert scene_id.startswith("scene_"), (
+            "Second component of articulation root path (scene ID) must start with 'scene_'"
+        )
         robot_name_components = robot_name.split("__")
-        assert (
-            len(robot_name_components) == 3
-        ), "Third component of articulation root path (robot name) must have 3 components separated by '__'"
-        assert (
-            robot_name_components[0] == "controllable"
-        ), "Third component of articulation root path (robot name) must start with 'controllable'"
-        assert (
-            robot_name_components[1] == self.kinematic_tree_identifier.lower()
-        ), "Third component of articulation root path (robot name) must contain the class name as the second part"
+        assert len(robot_name_components) == 3, (
+            "Third component of articulation root path (robot name) must have 3 components separated by '__'"
+        )
+        assert robot_name_components[0] == "controllable", (
+            "Third component of articulation root path (robot name) must start with 'controllable'"
+        )
+        assert robot_name_components[1] == self.kinematic_tree_identifier.lower(), (
+            "Third component of articulation root path (robot name) must contain the class name as the second part"
+        )
         # Run super
         super()._initialize()
         # Fill in the DOF to joint mapping
@@ -1553,26 +1551,26 @@ class Robot(USDObject, GymObservable):
             for arm in self.arm_names:
                 # If we have an arm controller, make sure it is a manipulation controller
                 if f"arm_{arm}" in self._controllers:
-                    assert isinstance(
-                        self._controllers["arm_{}".format(arm)], ManipulationController
-                    ), "Arm {} controller must be a ManipulationController!".format(arm)
+                    assert isinstance(self._controllers["arm_{}".format(arm)], ManipulationController), (
+                        "Arm {} controller must be a ManipulationController!".format(arm)
+                    )
 
                 # If we have a gripper controller, make sure it is a manipulation controller
                 if f"gripper_{arm}" in self._controllers:
-                    assert isinstance(
-                        self._controllers["gripper_{}".format(arm)], GripperController
-                    ), "Gripper {} controller must be a GripperController!".format(arm)
+                    assert isinstance(self._controllers["gripper_{}".format(arm)], GripperController), (
+                        "Gripper {} controller must be a GripperController!".format(arm)
+                    )
 
         if self.is_locomotion:
             # If we have a base controller, make sure it is a locomotion controller
             if "base" in self._controllers:
-                assert isinstance(
-                    self._controllers["base"], LocomotionController
-                ), "Base controller must be a LocomotionController!"
+                assert isinstance(self._controllers["base"], LocomotionController), (
+                    "Base controller must be a LocomotionController!"
+                )
         if self.is_two_wheel:
-            assert (
-                len(self.base_control_idx) == 2
-            ), "Differential drive can only be used with robot with two base joints!"
+            assert len(self.base_control_idx) == 2, (
+                "Differential drive can only be used with robot with two base joints!"
+            )
 
     def get_obs(self):
         """
@@ -1859,9 +1857,9 @@ class Robot(USDObject, GymObservable):
             # Infer parent link for this finger
             finger_parent_link, finger_parent_max_z = None, None
             is_parallel_jaw = len(finger_links) == 2
-            assert (
-                is_parallel_jaw
-            ), "Inferring finger link information can only be done for parallel jaw gripper robots!"
+            assert is_parallel_jaw, (
+                "Inferring finger link information can only be done for parallel jaw gripper robots!"
+            )
             finger_pts_in_eef_frame = []
             for i, finger_link in enumerate(finger_links):
                 # Find parent, and make sure one exists
@@ -1870,9 +1868,9 @@ class Robot(USDObject, GymObservable):
                     if finger_link.prim_path == joint.body1:
                         parent_prim_path = joint.body0
                         break
-                assert (
-                    parent_prim_path is not None
-                ), f"Expected articulated parent joint for finger link {finger_link.name} but found none!"
+                assert parent_prim_path is not None, (
+                    f"Expected articulated parent joint for finger link {finger_link.name} but found none!"
+                )
                 for link in self.links.values():
                     if parent_prim_path == link.prim_path:
                         parent_link = link
@@ -1882,23 +1880,23 @@ class Robot(USDObject, GymObservable):
                 if finger_parent_link is None:
                     finger_parent_link = parent_link
                     finger_parent_pts = finger_parent_link.collision_boundary_points_world
-                    assert (
-                        finger_parent_pts is not None
-                    ), f"Expected finger parent points to be defined for parent link {finger_parent_link.name}, but got None!"
+                    assert finger_parent_pts is not None, (
+                        f"Expected finger parent points to be defined for parent link {finger_parent_link.name}, but got None!"
+                    )
                     # Convert from world frame -> eef frame
                     finger_parent_pts = th.concatenate([finger_parent_pts, th.ones(len(finger_parent_pts), 1)], dim=-1)
                     finger_parent_pts = (finger_parent_pts @ eef_to_world_tf.T)[:, :3]
                     finger_parent_max_z = finger_parent_pts[:, 2].max().item()
                 else:
-                    assert (
-                        finger_parent_link == parent_link
-                    ), f"Expected all fingers to have same parent link, but found multiple parents at {finger_parent_link.prim_path} and {parent_link.prim_path}"
+                    assert finger_parent_link == parent_link, (
+                        f"Expected all fingers to have same parent link, but found multiple parents at {finger_parent_link.prim_path} and {parent_link.prim_path}"
+                    )
 
                 # Calculate this finger's collision boundary points in the world frame
                 finger_pts = finger_link.collision_boundary_points_world
-                assert (
-                    finger_pts is not None
-                ), f"Expected finger points to be defined for link {finger_link.name}, but got None!"
+                assert finger_pts is not None, (
+                    f"Expected finger points to be defined for link {finger_link.name}, but got None!"
+                )
                 # Convert from world frame -> eef frame
                 finger_pts = th.concatenate([finger_pts, th.ones(len(finger_pts), 1)], dim=-1)
                 finger_pts = (finger_pts @ eef_to_world_tf.T)[:, :3]
@@ -1916,9 +1914,9 @@ class Robot(USDObject, GymObservable):
                 # Since we know the EEF frame always points with z outwards towards the fingers, the outer-most point /
                 # fingertip is the maximum z value
                 finger_max_z = finger_pts[:, 2].max().item()
-                assert (
-                    finger_max_z > 0
-                ), f"Expected positive fingertip to eef frame offset for link {finger_link.name}, but got: {finger_max_z}. Does the EEF frame z-axis point in the direction of the fingers?"
+                assert finger_max_z > 0, (
+                    f"Expected positive fingertip to eef frame offset for link {finger_link.name}, but got: {finger_max_z}. Does the EEF frame z-axis point in the direction of the fingers?"
+                )
                 self._eef_to_fingertip_lengths[arm][finger_link.name] = finger_max_z
 
                 # Now, only keep points that are above the parent max z by 20% for inferring y values
@@ -1961,9 +1959,9 @@ class Robot(USDObject, GymObservable):
                 )
                 # We want to ensure the z value is symmetric about the EEF z frame, so make sure z_lower is negative
                 # and z_upper is positive, and use +/- the absolute minimum value between the two
-                assert (
-                    z_lower < 0 and z_upper > 0
-                ), f"Expected computed z_lower / z_upper bounds for finger grasping points to be negative / positive, but instead got: {z_lower}, {z_upper}"
+                assert z_lower < 0 and z_upper > 0, (
+                    f"Expected computed z_lower / z_upper bounds for finger grasping points to be negative / positive, but instead got: {z_lower}, {z_upper}"
+                )
                 z_offset = min(abs(z_lower), abs(z_upper))
 
                 grasp_pts = th.tensor(
@@ -2175,9 +2173,9 @@ class Robot(USDObject, GymObservable):
         """
         if self.is_two_wheel:
             action = th.zeros(self.action_dim)
-            assert isinstance(
-                self._controllers["base"], DifferentialDriveController
-            ), "Only DifferentialDriveController is supported!"
+            assert isinstance(self._controllers["base"], DifferentialDriveController), (
+                "Only DifferentialDriveController is supported!"
+            )
             action[self.base_action_idx] = th.tensor([teleop_action.base[0], teleop_action.base[2]]).float() * 0.3
             return action
 
@@ -2194,9 +2192,9 @@ class Robot(USDObject, GymObservable):
                 target_pos, target_orn = arm_action[:3], T.quat2axisangle(T.euler2quat(arm_action[3:6]))
                 action[self.arm_action_idx[arm_name]] = th.cat((target_pos, target_orn))
                 # gripper action
-                assert isinstance(
-                    self._controllers[f"gripper_{arm_name}"], MultiFingerGripperController
-                ), f"Only MultiFingerGripperController is supported for gripper {arm_name}!"
+                assert isinstance(self._controllers[f"gripper_{arm_name}"], MultiFingerGripperController), (
+                    f"Only MultiFingerGripperController is supported for gripper {arm_name}!"
+                )
                 action[self.gripper_action_idx[arm_name]] = arm_action[6]
             action[self.base_action_idx] = th.tensor(teleop_action.base).float()
             return action
@@ -2214,9 +2212,9 @@ class Robot(USDObject, GymObservable):
                 target_pos, target_orn = arm_action[:3], T.quat2axisangle(T.euler2quat(arm_action[3:6]))
                 action[self.arm_action_idx[arm_name]] = th.cat((target_pos, target_orn))
                 # gripper action
-                assert isinstance(
-                    self._controllers[f"gripper_{arm_name}"], MultiFingerGripperController
-                ), f"Only MultiFingerGripperController is supported for gripper {arm_name}!"
+                assert isinstance(self._controllers[f"gripper_{arm_name}"], MultiFingerGripperController), (
+                    f"Only MultiFingerGripperController is supported for gripper {arm_name}!"
+                )
                 action[self.gripper_action_idx[arm_name]] = arm_action[6]
                 return action
 
@@ -3371,12 +3369,12 @@ class Robot(USDObject, GymObservable):
         assert self.is_manipulation
         arm = self.default_arm if arm == "default" else arm
         # First, make sure start and end grasp points exist (i.e.: aren't None)
-        assert (
-            self.assisted_grasp_start_points[arm] is not None
-        ), "In order to use assisted grasping, assisted_grasp_start_points must not be None!"
-        assert (
-            self.assisted_grasp_end_points[arm] is not None
-        ), "In order to use assisted grasping, assisted_grasp_end_points must not be None!"
+        assert self.assisted_grasp_start_points[arm] is not None, (
+            "In order to use assisted grasping, assisted_grasp_start_points must not be None!"
+        )
+        assert self.assisted_grasp_end_points[arm] is not None, (
+            "In order to use assisted grasping, assisted_grasp_end_points must not be None!"
+        )
 
         # Iterate over all start and end grasp points and calculate their x,y,z positions in the world frame
         # (per arm appendage)
@@ -3477,9 +3475,9 @@ class Robot(USDObject, GymObservable):
             self._definition.manipulation
             and self._definition.manipulation.eef_support_curobo_attached_object_link_names
         ):
-            assert (
-                self.end_effector in self._definition.manipulation.eef_support_curobo_attached_object_link_names
-            ), "Robot not supported for curobo."
+            assert self.end_effector in self._definition.manipulation.eef_support_curobo_attached_object_link_names, (
+                "Robot not supported for curobo."
+            )
 
         assert self.is_manipulation
         # By default, sets the standardized path
@@ -4092,22 +4090,22 @@ class Robot(USDObject, GymObservable):
         if not self.is_holonomic_base:
             action = []
             for name, controller in self.controllers.items():
-                assert (
-                    isinstance(controller, JointController) and not controller.use_delta_commands
-                ), f"Controller [{name}] should be a JointController with use_delta_commands=False!"
+                assert isinstance(controller, JointController) and not controller.use_delta_commands, (
+                    f"Controller [{name}] should be a JointController with use_delta_commands=False!"
+                )
                 command = q[controller.dof_idx]
                 action.append(controller._reverse_preprocess_command(command))
             action = th.cat(action, dim=0)
-            assert (
-                action.shape[0] == self.action_dim
-            ), f"Action should have dimension {self.action_dim}, got {action.shape[0]}"
+            assert action.shape[0] == self.action_dim, (
+                f"Action should have dimension {self.action_dim}, got {action.shape[0]}"
+            )
             return action
 
         action = []
         for name, controller in self.controllers.items():
-            assert (
-                isinstance(controller, JointController) and not controller.use_delta_commands
-            ), f"Controller [{name}] should be a JointController/HolonomicBaseJointController with use_delta_commands=False!"
+            assert isinstance(controller, JointController) and not controller.use_delta_commands, (
+                f"Controller [{name}] should be a JointController/HolonomicBaseJointController with use_delta_commands=False!"
+            )
             command = q[controller.dof_idx]
             if isinstance(controller, HolonomicBaseJointController):
                 # Holonomnic base controller expects delta (x, y, rz) in robot base footprint link frame
@@ -4126,9 +4124,9 @@ class Robot(USDObject, GymObservable):
                 command = th.tensor([local_pos[0], local_pos[1], delta_q])
             action.append(controller._reverse_preprocess_command(command))
         action = th.cat(action, dim=0)
-        assert (
-            action.shape[0] == self.action_dim
-        ), f"Action should have dimension {self.action_dim}, got {action.shape[0]}"
+        assert action.shape[0] == self.action_dim, (
+            f"Action should have dimension {self.action_dim}, got {action.shape[0]}"
+        )
         return action
 
     @property

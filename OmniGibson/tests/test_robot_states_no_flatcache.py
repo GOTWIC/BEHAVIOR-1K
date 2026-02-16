@@ -92,9 +92,9 @@ def test_holonomic_robot_tuck_untuck_base_joint_invariance():
     robot.tuck()
     base_joint_pos_after_tuck = robot.get_joint_positions()[robot.base_idx]
     pos_after_tuck, ori_after_tuck = robot.get_position_orientation()
-    assert th.allclose(
-        initial_base_joint_pos, base_joint_pos_after_tuck, atol=1e-6
-    ), f"tuck() changed base joint positions! Initial: {initial_base_joint_pos}, After tuck: {base_joint_pos_after_tuck}"
+    assert th.allclose(initial_base_joint_pos, base_joint_pos_after_tuck, atol=1e-6), (
+        f"tuck() changed base joint positions! Initial: {initial_base_joint_pos}, After tuck: {base_joint_pos_after_tuck}"
+    )
     assert th.allclose(initial_pos, pos_after_tuck, atol=1e-6), "tuck() changed robot position"
     assert th.allclose(initial_ori, ori_after_tuck, atol=1e-6), "tuck() changed robot orientation"
 
@@ -102,9 +102,9 @@ def test_holonomic_robot_tuck_untuck_base_joint_invariance():
     robot.untuck()
     base_joint_pos_after_untuck = robot.get_joint_positions()[robot.base_idx]
     pos_after_untuck, ori_after_untuck = robot.get_position_orientation()
-    assert th.allclose(
-        initial_base_joint_pos, base_joint_pos_after_untuck, atol=1e-6
-    ), f"untuck() changed base joint positions! Initial: {initial_base_joint_pos}, After untuck: {base_joint_pos_after_untuck}"
+    assert th.allclose(initial_base_joint_pos, base_joint_pos_after_untuck, atol=1e-6), (
+        f"untuck() changed base joint positions! Initial: {initial_base_joint_pos}, After untuck: {base_joint_pos_after_untuck}"
+    )
     assert th.allclose(initial_pos, pos_after_untuck, atol=1e-6), "untuck() changed robot position"
     assert th.allclose(initial_ori, ori_after_untuck, atol=1e-6), "untuck() changed robot orientation"
 
