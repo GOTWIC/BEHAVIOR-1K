@@ -218,6 +218,20 @@ if [ "$NEW_ENV" = true ]; then
 
     [[ "$CONDA_DEFAULT_ENV" != "behavior" ]] && { echo "ERROR: Failed to activate environment"; exit 1; }
 
+    # Install CUDA toolkit + nvcc inside the conda env so builds don't use system CUDA (/usr/local/cuda-*)
+    echo "Installing CUDA toolkit (nvcc) $CUDA_VERSION inside the conda env..."
+    conda install -y -c nvidia "cuda-toolkit=${CUDA_VERSION}" "cuda-nvcc=${CUDA_VERSION}"
+
+    # Ensure this env's CUDA is used for compiling extensions (prevents picking up system CUDA 13.1)
+    export CUDA_HOME="${CONDA_PREFIX}"
+    export PATH="${CONDA_PREFIX}/bin:${PATH}"
+    export LD_LIBRARY_PATH="${CONDA_PREFIX}/lib:${CONDA_PREFIX}/lib64:${LD_LIBRARY_PATH}"
+
+    echo "✓ CUDA env toolchain configured:"
+    echo "  CUDA_HOME=${CUDA_HOME}"
+    echo "  nvcc=$(which nvcc)"
+    nvcc --version || true
+
     # Install numpy and setuptools via pip
     echo "Installing numpy and setuptools..."
     pip install "numpy<2" "setuptools<=79"
@@ -228,7 +242,7 @@ if [ "$NEW_ENV" = true ]; then
     # Determine the CUDA version string for pip URL (e.g., cu126, cu124, etc.)
     CUDA_VER_SHORT=$(echo $CUDA_VERSION | sed 's/\.//g')  # e.g. convert 12.6 to 126
     
-    pip install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu${CUDA_VER_SHORT}
+    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu${CUDA_VER_SHORT}
     echo "✓ PyTorch installation completed"
 fi
 # Install BDDL

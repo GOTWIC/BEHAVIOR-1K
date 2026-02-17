@@ -17,6 +17,7 @@ from omnigibson.robots.tiago import Tiago
 from omnigibson.robots.turtlebot import Turtlebot
 from omnigibson.robots.two_wheel_robot import TwoWheelRobot
 from omnigibson.robots.vx300s import VX300S
+from omnigibson.robots.yam import Yam
 
 __all__ = [
     "A1",
@@ -39,4 +40,5 @@ __all__ = [
     "Turtlebot",
     "TwoWheelRobot",
     "VX300S",
+    "Yam",
 ]

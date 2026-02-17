@@ -2387,7 +2387,7 @@ def record_obj_metadata_from_urdf(urdf_path, obj_dir, joint_setting="zero", over
 def import_og_asset_from_urdf(
     category,
     model,
-    dataset_root,
+    dataset_root=None,
     urdf_path=None,
     collision_method="coacd",
     coacd_links=None,
@@ -2430,6 +2430,10 @@ def import_og_asset_from_urdf(
             - str: Absolute path to generated USD file
             - Usd.Prim: Generated root USD prim (currently on active stage)
     """
+    # Resolve default dataset_root to the custom_dataset directory under DATA_PATH
+    if dataset_root is None:
+        dataset_root = get_dataset_path("custom_dataset")
+
     # Make sure all scaling is positive
     model_dir = os.path.join(dataset_root, "objects", category, model)
     os.makedirs(model_dir, exist_ok=overwrite)
@@ -2461,11 +2465,13 @@ def import_og_asset_from_urdf(
     print("Converting obj URDF to USD...")
     og.launch()
     assert len(og.sim.scenes) == 0
+    # convert_urdf_to_usd expects dataset_name (relative to DATA_PATH), not dataset_root (absolute)
+    dataset_name = os.path.relpath(dataset_root, gm.DATA_PATH)
     urdf_path, usd_path = convert_urdf_to_usd(
         urdf_path=urdf_path,
         obj_category=category,
         obj_model=model,
-        dataset_root=dataset_root,
+        dataset_name=dataset_name,
         use_omni_convex_decomp=False,  # We already pre-decomposed the values, so don' use omni convex decomp
         use_usda=use_usda,
         merge_fixed_joints=merge_fixed_joints,
