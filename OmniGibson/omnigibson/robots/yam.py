@@ -155,8 +155,9 @@ class Yam(ManipulationRobot):
 
     @property
     def usd_path(self):
-        # import_custom_robot.py places the asset at:
-        #   <DATA_PATH>/custom_dataset/objects/robot/yam/usd/yam.usda
+        override = os.environ.get("OG_YAM_USD_PATH")
+        if override:
+            return override
         return os.path.join(
             get_dataset_path("custom_dataset"), "objects", "robot", "yam", "usd", "yam.usda"
         )
@@ -180,28 +181,21 @@ class Yam(ManipulationRobot):
 
     @property
     def _raw_controller_order(self):
-        # Arm-only (no gripper in current URDF)
-        return [f"arm_{self.default_arm}"]
+        return [f"arm_{self.default_arm}", f"gripper_{self.default_arm}"]
 
     @property
     def _default_controllers(self):
         controllers = super()._default_controllers
         controllers[f"arm_{self.default_arm}"] = "JointController"
-        # TODO: Add gripper controller when gripper is added to URDF
-        # controllers[f"gripper_{self.default_arm}"] = "MultiFingerGripperController"
+        controllers[f"gripper_{self.default_arm}"] = "MultiFingerGripperController"
         return controllers
 
     @property
     def _default_joint_pos(self):
-        # Home position for 6 arm joints (arm-only, no gripper)
-        # Joint limits from URDF:
-        #   joint1: -2.618 to 3.13      → 0 (center)
-        #   joint2: 0 to 3.65           → 1.5 (avoid lower limit)
-        #   joint3: 0 to 3.13           → 1.5 (avoid lower limit)
-        #   joint4: -1.65 to 1.65       → 0 (center)
-        #   joint5: -1.571 to 1.571     → 0 (center)
-        #   joint6: -2.094 to 2.094     → 0 (center)
-        return th.tensor([0.0, 1.5, 1.5, 0.0, 0.0, 0.0])
+        # 6 arm joints + 2 finger joints (if present in USD). Arm: 0, 1.5, 1.5, 0, 0, 0; fingers: 0
+        n = getattr(self, "n_dof", 8)
+        out = [0.0, 1.5, 1.5, 0.0, 0.0, 0.0] + [0.0] * max(0, n - 6)
+        return th.tensor(out[:n])
 
     # -------------------------------------------------------------------------
     # Kinematic names  (must match link / joint names in the USD prim tree)
@@ -236,21 +230,32 @@ class Yam(ManipulationRobot):
 
     @cached_property
     def eef_link_names(self):
-        return {self.default_arm: "ee_link"}
+        # Use first existing: ee_link/grasp_link (yam.usda) or link_6 (when chain goes link_6 -> fingers only)
+        candidates = ("ee_link", "grasp_link", "link_6")
+        if hasattr(self, "_links") and self._links is not None:
+            for name in candidates:
+                if name in self._links:
+                    return {self.default_arm: name}
+        return {self.default_arm: "link_6"}
 
     @cached_property
     def gripper_link_names(self):
-        # TODO: Add gripper links when gripper is added to URDF
-        return {self.default_arm: []}
+        # Discover from USD or use standard names (link_left_finger, link_right_finger)
+        if hasattr(self, "_links") and self._links is not None:
+            finger = sorted([k for k in self._links if "finger" in k.lower()])
+            return {self.default_arm: finger}
+        return {self.default_arm: ["link_left_finger", "link_right_finger"]}
 
     @cached_property
     def finger_link_names(self):
-        # TODO: Add finger links when gripper is added to URDF
-        return {self.default_arm: []}
+        return self.gripper_link_names
 
-    @cached_property
+    @property
     def finger_joint_names(self):
-        # TODO: Add finger joints when gripper is added to URDF
+        # Discover from USD so both "left_finger_joint" and "joint_left_finger_joint" work
+        if hasattr(self, "_joints") and self._joints is not None:
+            finger = sorted([k for k in self._joints if "finger" in k.lower()])
+            return {self.default_arm: finger}
         return {self.default_arm: []}
 
     # -------------------------------------------------------------------------
