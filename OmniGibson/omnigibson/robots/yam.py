@@ -15,9 +15,9 @@ class Yam(ManipulationRobot):
     """
     i2rt YAM 6-DOF Robot Arm with parallel-jaw gripper.
 
-    Kinematic chain: base_link -> link_1 -> ... -> link_6 -> ee_link / grasp_link
-                                                          -> left_finger_link
+    Kinematic chain: base_link -> link_1 -> ... -> link_6 -> left_finger_link
                                                           -> right_finger_link
+    (No separate ee_link; link_6 is the wrist / EEF frame.)
 
     Arm joint limits (radians, from MJCF model):
         joint1: [-2.618, 3.130]   (DM4340 motor)
@@ -230,12 +230,7 @@ class Yam(ManipulationRobot):
 
     @cached_property
     def eef_link_names(self):
-        # Use first existing: ee_link/grasp_link (yam.usda) or link_6 (when chain goes link_6 -> fingers only)
-        candidates = ("ee_link", "grasp_link", "link_6")
-        if hasattr(self, "_links") and self._links is not None:
-            for name in candidates:
-                if name in self._links:
-                    return {self.default_arm: name}
+        # No separate ee_link; wrist / EEF frame is link_6 (chain is link_6 -> fingers).
         return {self.default_arm: "link_6"}
 
     @cached_property
@@ -257,6 +252,13 @@ class Yam(ManipulationRobot):
             finger = sorted([k for k in self._joints if "finger" in k.lower()])
             return {self.default_arm: finger}
         return {self.default_arm: []}
+
+    def _initialize(self):
+        super()._initialize()
+        # Keep link_6 visible (no separate ee_link; base class hides eef_link by default)
+        for arm in self.arm_names:
+            if self.eef_link_names[arm] in self._links:
+                self._links[self.eef_link_names[arm]].visible = True
 
     # -------------------------------------------------------------------------
     # Gripper method overrides (no physical gripper in current URDF)
