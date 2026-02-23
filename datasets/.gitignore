@@ -7,3 +7,7 @@
 
 # Also include the README
 !README
+
+# Track custom_dataset (user/local assets, e.g. custom robots)
+!custom_dataset/
+!custom_dataset/**
