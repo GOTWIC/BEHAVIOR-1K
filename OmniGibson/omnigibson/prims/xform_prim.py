@@ -70,7 +70,11 @@ class XFormPrim(BasePrim):
 
         # Cache the original scale from the USD so that when EntityPrim sets the scale for each link (Rigid/ClothPrim),
         # the new scale is with respect to the original scale. XFormPrim's scale always matches the scale in the USD.
-        self.original_scale = th.tensor(self.get_attribute("xformOp:scale"))
+        # Referenced mesh prims (e.g. from a payload) may not have xformOp:scale authored; default to (1,1,1).
+        scale_val = self.get_attribute("xformOp:scale")
+        if scale_val is None:
+            scale_val = (1.0, 1.0, 1.0)
+        self.original_scale = th.tensor(scale_val)
 
         # Grab the attached material if it exists
         if self.has_material():
@@ -417,7 +421,8 @@ class XFormPrim(BasePrim):
         if self._cached_scale is not None:
             return self._cached_scale
         scale = self.get_attribute("xformOp:scale")
-        assert scale is not None, "Attribute 'xformOp:scale' is None for prim {}".format(self.name)
+        if scale is None:
+            scale = (1.0, 1.0, 1.0)
         return th.tensor(scale)
 
     @scale.setter

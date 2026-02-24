@@ -7,8 +7,8 @@
                 double radius = 5
             }
             dictionary Perspective = {
-                double3 position = (0.1832424283213048, 0.011220996591979273, 0.6418091773822421)
-                double3 target = (0.18147572249735655, -0.1732627032740878, -3.3655045829685837)
+                double3 position = (0.39756146093591826, 0.14002289741534182, 0.4829563753250722)
+                double3 target = (-1.2676429128420512, -1.250683754802928, -2.891303592681156)
             }
             dictionary Right = {
                 double3 position = (0, -5, 0)
@@ -18,7 +18,7 @@
                 double3 position = (0, 0, 5)
                 double radius = 1.1859610557556153
             }
-            string boundCamera = "/OmniverseKit_Top"
+            string boundCamera = "/OmniverseKit_Persp"
         }
         dictionary metricsAssembler = {
             dictionary "/yam/model2__13" = {
@@ -946,10 +946,12 @@ def Xform "yam" (
 
 def Scope "visuals"
 {
-    token visibility = "invisible"
+    token visibility = "inherited"
 
     def Xform "base_link"
     {
+        token visibility = "invisible"
+
         def Mesh "base_link_visual" (
             apiSchemas = ["MaterialBindingAPI"]
         )
@@ -973,6 +975,8 @@ def Scope "visuals"
 
     def Xform "link_1"
     {
+        token visibility = "invisible"
+
         def Mesh "link_1_visual" (
             apiSchemas = ["MaterialBindingAPI"]
         )
@@ -996,6 +1000,8 @@ def Scope "visuals"
 
     def Xform "link_2"
     {
+        token visibility = "invisible"
+
         def Mesh "link_2_visual" (
             apiSchemas = ["MaterialBindingAPI"]
         )
@@ -1019,6 +1025,8 @@ def Scope "visuals"
 
     def Xform "link_3"
     {
+        token visibility = "invisible"
+
         def Mesh "link_3_visual" (
             apiSchemas = ["MaterialBindingAPI"]
         )
@@ -1042,6 +1050,8 @@ def Scope "visuals"
 
     def Xform "link_4"
     {
+        token visibility = "invisible"
+
         def Mesh "link_4_visual" (
             apiSchemas = ["MaterialBindingAPI"]
         )
@@ -1065,6 +1075,8 @@ def Scope "visuals"
 
     def Xform "link_5"
     {
+        token visibility = "invisible"
+
         def Mesh "link_5_visual" (
             apiSchemas = ["MaterialBindingAPI"]
         )
@@ -1088,6 +1100,8 @@ def Scope "visuals"
 
     def Xform "link_6"
     {
+        token visibility = "invisible"
+
         def Mesh "link_6_visual" (
             apiSchemas = ["MaterialBindingAPI"]
         )
@@ -1111,10 +1125,12 @@ def Scope "visuals"
 
     def Xform "ee_link"
     {
+        token visibility = "invisible"
     }
 
     def Xform "grasp_link"
     {
+        token visibility = "invisible"
     }
 
     def Xform "link_left_finger"
@@ -1142,6 +1158,8 @@ def Scope "visuals"
 
     def Xform "link_right_finger"
     {
+        token visibility = "invisible"
+
         def Mesh "link_right_finger_visual" (
             apiSchemas = ["MaterialBindingAPI"]
         )
@@ -1397,7 +1415,7 @@ def "Render" (
                 no_delete = true
             )
             {
-                rel camera = </OmniverseKit_Top>
+                rel camera = </OmniverseKit_Persp>
                 token omni:rtx:background:source:texture:textureMode = "repeatMirrored"
                 token omni:rtx:background:source:type = "domeLight"
                 bool omni:rtx:dlss:frameGeneration = 0
