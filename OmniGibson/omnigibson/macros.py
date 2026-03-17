@@ -211,7 +211,7 @@ gm.DEFAULT_VIEWER_HEIGHT = 720
 # rendering must be a multiple of physics frequency, and sim_step must be a multiple of rendering frequency
 gm.DEFAULT_SIM_STEP_FREQ = 30
 gm.DEFAULT_RENDERING_FREQ = 30
-gm.DEFAULT_PHYSICS_FREQ = 120
+gm.DEFAULT_PHYSICS_FREQ = 60
 
 # (Demo-purpose) Whether to activate Assistive Grasping mode for Cloth (it's handled differently from RigidBody)
 gm.AG_CLOTH = False

@@ -23,7 +23,7 @@ setup(
     install_requires=[
         "huggingface-hub[cli]>=0.34.4",
         "gymnasium>=0.28.1",
-        "numpy<2.0.0,>=1.23.5",
+        "numpy>=1.23.5",
         "scipy>=1.10.1",
         "GitPython>=3.1.40",
         "transforms3d>=0.4.1",
@@ -51,7 +51,7 @@ setup(
         "lxml>=5.2.2",
         "numba>=0.59.1",
         "cffi==1.17.1",
-        "pillow~=11.0.0",
+        "pillow>=10.0.0",
         "websockets>=15.0.1",
     ],
     extras_require={
